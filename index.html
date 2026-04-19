@@ -1,1 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>COMPASS — Climate Action Routing System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:#fafaf9;font-family:'Trebuchet MS','Gill Sans',Georgia,sans-serif;}
+  button{font-family:inherit;}
+  a{font-family:inherit;}
+  textarea{font-family:inherit;}
+  @media print{nav{display:none!important;} .no-print{display:none!important;}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState} = React;
 
+const HAZARDS=[
+  {id:"flood",label:"Flood",icon:"🌊",accent:"#1d4ed8",light:"#eff6ff"},
+  {id:"heat",label:"Heat Stress",icon:"🌡️",accent:"#ea580c",light:"#fff7ed"},
+  {id:"cyclone",label:"Cyclone",icon:"🌀",accent:"#7c3aed",light:"#f5f3ff"},
+  {id:"drought",label:"Drought",icon:"🏜️",accent:"#b45309",light:"#fffbeb"},
+  {id:"landslide",label:"Landslide",icon:"⛰️",accent:"#92400e",light:"#fef3c7"},
+  {id:"glof",label:"GLOF",icon:"🧊",accent:"#0891b2",light:"#ecfeff"},
+];
+const ROLES=[
+  {id:"community",label:"Community Member",sub:"Farmer · Fisher · Village Resident",icon:"👨‍🌾"},
+  {id:"local_node",label:"Local Node",sub:"Sarpanch · CDMC · SHG Leader",icon:"🏘️"},
+  {id:"ngo",label:"NGO Partner",sub:"Field Practitioner · Programme Lead",icon:"🤝"},
+  {id:"government",label:"Government Official",sub:"Block · District · State Officer",icon:"🏛️"},
+];
+const GEOGRAPHIES=[
+  {id:"vidarbha",label:"Vidarbha",sub:"Maharashtra",icon:"🌿",color:"#15803d"},
+  {id:"coastal_odisha",label:"Coastal Odisha",sub:"Odisha",icon:"🌊",color:"#0369a1"},
+  {id:"ladakh",label:"Ladakh",sub:"UT Ladakh",icon:"🏔️",color:"#6d28d9"},
+];
+const SOLUTIONS=[
+  {id:1,name:"Bio-Dyke + Mangrove Buffer",category:"Nature-Based",hazards:["cyclone","flood"],geographies:["coastal_odisha"],evidenceLevel:3,costRange:"₹18–35 lakh/km",icon:"🌿",plain:"An earthen embankment reinforced with mangrove trees that absorbs storm surge and protects coastal villages from cyclones.",triedAt:"Kendrapara, Jagatsinghpur, Bhitarkanika — Odisha coastline",bestFor:"Estuary-adjacent land with community forest rights. 60%+ mangrove survival potential.",failureModes:"Fails where land tenure is contested or shrimp farms compete. Non-Bhitarkanika sites show <25% ten-year survival without facilitation.",story:"After Cyclone Fani, Chittaranjan Behera's cluster in Kendrapara lost no houses — the mangrove belt held where concrete walls collapsed.",firstStep:"Call RCDC Bhubaneswar: 0674-2435985. Ask for their Eco-DRR programme team.",tags:["MGNREGS convergence","CAMPA eligible","CFR required"],provider:"RCDC / FES Bhubaneswar",accessible:true},
+  {id:2,name:"Watershed Treatment (Ridge-to-Valley)",category:"Nature-Based",hazards:["drought","flood"],geographies:["vidarbha"],evidenceLevel:3,costRange:"₹12,000–22,000/hectare",icon:"🏔️",plain:"Full micro-watershed treatment — contour trenches to farm bunds — that raises groundwater and extends the cropping season.",triedAt:"6,000+ villages in Maharashtra, MP, Telangana (WOTR). 843 watersheds (BAIF).",bestFor:"Rainfed dryland with 500–900mm rainfall. 3+ year community commitment.",failureModes:"Siting errors without hydrogeological planning. Farm ponds lined with LDPE become evaporation pans.",story:"In Ramtek, Nagpur district, groundwater rose 1.8 metres in three years. 43 women farmers grew a second crop for the first time.",firstStep:"Call WOTR Amravati: 0721-2560545. Request their climate-resilient watershed programme.",tags:["MGNREGS convergence","WDC-PMKSY eligible","PoCRA priority"],provider:"WOTR / BAIF Maharashtra",accessible:true},
+  {id:3,name:"Ice Stupa (Artificial Glacier)",category:"Tech-Assisted NbS",hazards:["drought","glof"],geographies:["ladakh"],evidenceLevel:2,costRange:"₹1.5–5 lakh per stupa",icon:"🧊",plain:"A conical ice tower built in winter from stream water. Melts April–May to give farmers irrigation exactly when needed for sowing.",triedAt:"~40 villages: Phyang, Igoo, Shara, Zanskar cluster (2025 verified).",bestFor:"Above 3,500m altitude. Below -10°C winter consistently. Trained village fabricator essential.",failureModes:"Pipe freezing. Year-to-year variability. Collapses without trained maintenance. Not viable below 3,500m.",story:"Jigmet Namgyal from Phyang built his district's fourth ice stupa in 2023. His April harvest was the best in six years.",firstStep:"Email HIAL Phyang: ice.stupa@hial.ac.in. Request village fabricator training.",tags:["Requires trained fabricator","LAHDC grant possible","HIAL support"],provider:"HIAL / LEDeG Leh",accessible:false},
+  {id:4,name:"SRI — System of Rice Intensification",category:"Agroecology",hazards:["flood","drought"],geographies:["coastal_odisha"],evidenceLevel:3,costRange:"₹2,000–4,000/ha (training)",icon:"🌾",plain:"Younger seedlings, wider spacing, less water. 20–50% more rice with 25–40% less water. Proven for women farmers in flood-prone areas.",triedAt:"Mayurbhanj, Keonjhar, Sundargarh — ~200,000 women farmers (PRADAN).",bestFor:"Rainfed or canal-irrigated paddy land. Works best with SHG for group learning.",failureModes:"Fails without one supported demonstration season. Lone adopters without peer group rarely sustain.",story:"Sunita Dehuri from Keonjhar increased paddy yield from 18 to 28 quintals per acre. Her water use dropped by half.",firstStep:"Call PRADAN Odisha: 0671-2301156. Ask for SRI group formation in your block.",tags:["SHG entry point","KVK support","Flood Sub1 variety"],provider:"PRADAN / Sambhav / ICAR-NRRI",accessible:true},
+  {id:5,name:"Village Heat Action Plan",category:"Community Protocol",hazards:["heat"],geographies:["vidarbha"],evidenceLevel:2,costRange:"₹50,000–2 lakh (GP level)",icon:"☀️",plain:"A locally-adapted plan that opens cooling centres, triggers ORS through ASHAs, notifies labour contractors, and activates health surveillance during heat waves.",triedAt:"Nagpur Municipal Corporation (NMC + NRDC India, 2013→). Rural Vidarbha: almost no coverage.",bestFor:"Active ASHA network, functional Panchayat Bhawan, IMD heat alert integration.",failureModes:"Rural Vidarbha farm labourers are outside any existing HAP. Urban design has not reached village scale.",story:"During the 2024 Vidarbha heat wave, ASHA Rekha in Yavatmal activated her village protocol. Three elderly residents at risk were monitored daily.",firstStep:"Contact your District Health Officer and request the Heat Action Plan template.",tags:["SDRF health component","Ayushman Bharat linkage","ASHA network required"],provider:"NRDC India / District Health Office",accessible:false},
+  {id:6,name:"Cyclone Early Warning Cascade",category:"Community Protocol",hazards:["cyclone","flood"],geographies:["coastal_odisha"],evidenceLevel:3,costRange:"₹3–8 lakh per GP cluster",icon:"📡",plain:"A colour-coded alert cascade from IMD to OSDMA to block to GP task force to household — with named roles, trained volunteers, annual drills.",triedAt:"879+ cyclone shelters across Odisha. Deaths: ~10,000 (1999) → 64 (Fani 2019).",bestFor:"Functional Multi-Purpose Cyclone Shelter, 20-person Community Task Force, annual mock drill.",failureModes:"Not extended to lightning, heat or flash floods. Ganjam model exists but has scaled slowly.",story:"Satabhaya in Kendrapara has been displaced three times. After task force training, their last evacuation took 4 hours. In 1999 it took days they didn't have.",firstStep:"Contact your Block Development Officer (BDO). Ask to register for OSDMA Community Task Force training.",tags:["OSDMA support","NDRF training","SDRF funded"],provider:"OSDMA / NDRF 4th Bn",accessible:true},
+  {id:7,name:"PMFBY Claim Navigation",category:"Financial Protection",hazards:["drought","flood","cyclone"],geographies:["vidarbha","coastal_odisha"],evidenceLevel:3,costRange:"Free (entitlement)",icon:"📋",plain:"A step-by-step process to file a PMFBY crop-loss claim with photographic documentation — before the Revenue Inspector arrives.",triedAt:"Yavatmal, Amravati, Buldhana — documented by Prayas Energy Group.",bestFor:"Loanee farmers (auto-enrolled). Non-loanee must opt in before sowing season cutoff.",failureModes:"Cluster-level yield assessment denies individual losses. Non-loanees rarely opt in.",story:"Dattatray Wankhede in Yavatmal was rejected twice. In 2023, with documentation support, he received ₹42,000 — first payment in 8 years of premiums.",firstStep:"Call 1800-180-1551 (Kisan Call Centre, free) within 72 hours of crop damage. Photograph damage first.",tags:["72-hr deadline critical","Photo evidence essential","1800-180-1551 free"],provider:"Prayas Energy Group / Kisan Call Centre",accessible:true},
+  {id:8,name:"Solar-Passive House Retrofit",category:"Structural",hazards:["heat","drought"],geographies:["ladakh"],evidenceLevel:2,costRange:"₹40,000–1.2 lakh per house",icon:"🏠",plain:"A south-facing glazed wall stores solar heat by day, releases it at night. Cuts winter fuel by 40–60%. No electricity needed.",triedAt:"Leh cluster villages — GERES India evaluations at 3,000–4,000m.",bestFor:"South-facing wall exposure. Trained local mason. Altitude 3,000–4,500m.",failureModes:"Overheats in summer without shading. No subsidy channel — PMAY-G does not fund thermal retrofit.",story:"Sonam Dolma's house in Nimmu stays warm through January without a gas heater. Her family saved ₹18,000 in fuel last winter.",firstStep:"Call LEDeG Leh: 01982-252068. Request the solar passive house programme.",tags:["No current subsidy","LEDeG support","LAHDC grant possible"],provider:"LEDeG / GERES India",accessible:false},
+];
+const PROVIDERS=[
+  {id:1,name:"WOTR",full:"Watershed Organisation Trust",type:"NGO",geographies:["vidarbha"],hazards:["drought","flood"],what:"Participatory watershed treatment, groundwater management, climate-resilient agriculture across 6,000+ villages.",districts:"Amravati · Akola · Yavatmal · Wardha",phone:"0721-2560545",email:"info@wotr.org",responsiveness:4,projectOnly:false,track:"Strong evidence base with CARIAA climate links. Slower outside programme geographies."},
+  {id:2,name:"RCDC",full:"Regional Centre for Development Cooperation",type:"NGO",geographies:["coastal_odisha"],hazards:["cyclone","flood"],what:"Community forest rights, mangrove restoration, bio-dyke implementation, coastal commons advocacy.",districts:"Kendrapara · Jagatsinghpur · Bhadrak · Balasore",phone:"0674-2435985",email:"rcdc@rcdc.in",responsiveness:4,projectOnly:false,track:"Most credible bio-dyke partner in Odisha. FRA-linked community work."},
+  {id:3,name:"PRADAN",full:"Professional Assistance for Development Action",type:"NGO",geographies:["coastal_odisha"],hazards:["flood","drought"],what:"SHG formation, SRI adoption, rainfed agriculture — 3.4 million households across 9 states.",districts:"Mayurbhanj · Keonjhar · Sundargarh",phone:"0671-2301156",email:"pradan@pradan.net",responsiveness:5,projectOnly:false,track:"Deepest community embeddedness in the sector. SHG-led, women-centred."},
+  {id:4,name:"HIAL",full:"Himalayan Institute of Alternatives Ladakh",type:"NGO",geographies:["ladakh"],hazards:["drought","glof"],what:"Ice stupa technology, cold-desert climate education, village fabricator training.",districts:"Leh · Zanskar · Kargil (limited)",phone:null,email:"ice.stupa@hial.ac.in",responsiveness:3,projectOnly:false,track:"Pioneered ice stupa technology. Strong innovation culture. Small institution."},
+  {id:5,name:"SEEDS India",full:"Sustainable Environment and Ecological Development Society",type:"NGO",geographies:["vidarbha","coastal_odisha","ladakh"],hazards:["cyclone","flood","landslide"],what:"Disaster response, Owner-Driven Reconstruction, school safety. India's most certified DRR agency.",districts:"Pan-India · Odisha since Phailin · Ladakh since 2021",phone:"011-26195081",email:"seeds@seedsindia.org",responsiveness:4,projectOnly:false,track:"Best institutional credibility. Strong in acute disaster phases."},
+  {id:6,name:"LEDeG",full:"Ladakh Ecological Development Group",type:"NGO",geographies:["ladakh"],hazards:["heat","drought"],what:"Solar-passive housing, clean energy, traditional water system revival. 40+ years in Leh.",districts:"Leh · Nimmu · Khaltsi · Nubra · Zanskar",phone:"01982-252068",email:"ledegled@gmail.com",responsiveness:4,projectOnly:false,track:"Most locally rooted Ladakh organisation. Decades of trust capital."},
+  {id:7,name:"SSP",full:"Swayam Shikshan Prayog",type:"NGO",geographies:["vidarbha","coastal_odisha"],hazards:["flood","cyclone","drought"],what:"Women-led climate-resilient agriculture, community resilience funds. 48,000 women farmers in Maharashtra and Odisha.",districts:"Osmanabad · Latur (MH) · Ganjam · Malkangiri (OD)",phone:"022-25108064",email:"info@ssorganisation.org",responsiveness:5,projectOnly:false,track:"UNDP Equator Prize 2016. Highest community-responsiveness. Women-centred."},
+  {id:8,name:"OSDMA",full:"Odisha State Disaster Management Authority",type:"Government",geographies:["coastal_odisha"],hazards:["cyclone","flood"],what:"879+ cyclone shelters, community task force training, EWS cascade across all coastal districts.",districts:"All 14 coastal Odisha districts",phone:"1070",email:"osdma@nic.in",responsiveness:3,projectOnly:false,track:"India's most capable SDMA. Low direct access — use BDO or NGO intermediary."},
+];
+const SCHEMES=[
+  {id:1,name:"MGNREGS",full:"Mahatma Gandhi NREGS",ministry:"Rural Development",hazards:["flood","drought","cyclone","landslide","glof"],geographies:["vidarbha","coastal_odisha","ladakh"],funds:"100 days of work/year for watershed, farm ponds, embankments, afforestation. 262+ permissible DRR works.",eligibility:"Any rural household. No income limit. Women-headed households have priority.",realWorld:"Wage delays of 60–90 days common in Odisha and Maharashtra. Ladakh rates inadequate for altitude costs.",steps:["Register Job Card at GP/Ward Member (Aadhaar + bank passbook)","Submit written demand for work — keep your copy","Work must begin within 15 days","Wages paid to bank account within 15 days of work"],bottleneck:"GP Secretary controls work allocation. BDO for technical sanction above ₹10 lakh.",convergence:["PMKSY PDMC (drip + watershed)","PMAY-G (building works)","CAMPA (afforestation)"],accessible:4,warning:"Wage delays are real — track your payment on nrega.nic.in",firstStep:"Visit your Gram Panchayat office. Ask for a MGNREGS Job Card. Bring Aadhaar, bank passbook, passport photo."},
+  {id:2,name:"PMFBY",full:"Pradhan Mantri Fasal Bima Yojana",ministry:"Agriculture",hazards:["drought","flood","cyclone"],geographies:["vidarbha","coastal_odisha"],funds:"Crop insurance for pre-sowing to post-harvest losses. Farmer pays 2% kharif, 1.5% rabi, 5% commercial.",eligibility:"All farmers. Loanee (auto-enrolled). Non-loanee must opt in before sowing-season cutoff.",realWorld:"Cluster-level yield assessment means individual losses are often denied. Non-loanee farmers rarely opt in. Vidarbha rejection rates are high.",steps:["Verify enrollment on pmfby.gov.in","Photograph damage with timestamp immediately","Call 1800-180-1551 within 72 hours","Request Panchnama from Tehsildar's office","Track claim on PMFBY portal"],bottleneck:"Tehsildar's Panchnama team. Without documented evidence before their visit, claims are denied.",convergence:["PM-KISAN (income support)","NDRF/SDRF (same event, apply for both)"],accessible:2,warning:"72 hours is the hard deadline. Photograph everything before calling.",firstStep:"Call 1800-180-1551 (Kisan Call Centre, free). Photograph your damaged crop first."},
+  {id:3,name:"NDRF/SDRF Relief",full:"National and State Disaster Response Fund",ministry:"Home Affairs",hazards:["flood","cyclone","landslide","glof"],geographies:["vidarbha","coastal_odisha","ladakh"],funds:"Death ex-gratia ₹4 lakh, crop loss ₹8,500–17,000/ha, fully damaged house ₹95,100, animal loss compensation.",eligibility:"Victims of 12 notified disasters. Suicides and heat stroke: partial/no coverage.",realWorld:"Revenue Inspector Panchnama is the gateway. Quality varies dramatically by district. Odisha is consistently faster than Vidarbha.",steps:["Go to GP office immediately after disaster","Demand Panchnama in writing within 72 hours","Submit Aadhaar, bank details, land documents to Tehsildar","Track via District Collector portal"],bottleneck:"Revenue Inspector + Tehsildar control all flows. No fixed SLA for assessment completion.",convergence:["PMFBY (crop loss — both claimable)","MGNREGS (post-disaster reconstruction labour)"],accessible:3,warning:"Demand the Panchnama in writing. Verbal assurances have no legal force.",firstStep:"Go to your GP office today. Ask the Secretary to formally request a Revenue Inspector Panchnama."},
+  {id:4,name:"DAY-NRLM / Mission Shakti",full:"National Rural Livelihoods Mission",ministry:"Rural Development",hazards:["drought","flood","cyclone","heat"],geographies:["vidarbha","coastal_odisha","ladakh"],funds:"SHG formation support, Community Investment Fund ₹1.5–5 lakh for mature SHGs, revolving funds, bank linkage.",eligibility:"Women from poor/vulnerable households. SHG must be active 6+ months for CIF.",realWorld:"Odisha's Mission Shakti (2.2M+ SHGs) is genuinely community-controlled. Maharashtra's Umed more variable. Ladakh early-stage.",steps:["Find nearest active SHG through GP or Block office","Join or help form SHG (10–20 women, regular savings)","After 6 months: apply for CIF through Block Mission Manager","Bank linkage after 2 years with clean records"],bottleneck:"Block Mission Manager (BMM) approval for CIF. Dormant SHGs on paper delay access by years.",convergence:["MGNREGS","PMFBY","PMAY-G","PM-KISAN"],accessible:4,warning:"Check SHG is genuinely active before joining — dormant SHGs waste years of your eligibility.",firstStep:"Visit your Block office. Ask for the Block Mission Manager (BMM) and the nearest active SHG."},
+  {id:5,name:"PMAY-G",full:"Pradhan Mantri Awaas Yojana Gramin",ministry:"Rural Development",hazards:["cyclone","flood","landslide"],geographies:["coastal_odisha","vidarbha","ladakh"],funds:"₹1.20 lakh (plain) / ₹1.30 lakh (hilly) + 90–95 days MGNREGS labour. Odisha adds state top-up for cyclone-resistant specs.",eligibility:"Houseless households on SECC list. Priority: SC/ST, minorities, widows, persons with disability.",realWorld:"SECC list misses many eligible households. Cyclone-resistant specs are optional — not default. Ladakh costs are 4–5x the grant.",steps:["Check your name on SECC list at GP office","If not listed: apply via Pradhan Mantri Awaas+ survey","Choose design from BMTPC disaster-resilient catalogue","Funds released in three tranches directly to your bank account"],bottleneck:"SECC list inclusion is the hardest gate. BDO manages the waitlist.",convergence:["MGNREGS (90-95 labour days built in)","NDRF/SDRF (post-disaster repairs for non-beneficiaries)"],accessible:3,warning:"SECC list exclusion is the most common barrier. Demand the GP Secretary show you the list.",firstStep:"Visit your GP office. Ask the Secretary to check if your household is on the SECC list for PMAY-G."},
+];
+
+function generatePathway(context,savedItems){
+  const geoLabel=GEOGRAPHIES.find(g=>g.id===context.geo)?.label||context.geo;
+  const hazardLabel=HAZARDS.find(h=>h.id===context.hazard)?.label||context.hazard;
+  return [
+    {timing:"Next 24 Hours",color:"#dc2626",icon:"⚡",
+      action:context.hazard==="flood"&&context.geo==="coastal_odisha"?"Contact your BDO to register for OSDMA Community Task Force training. Get your GP's cyclone shelter location.":context.hazard==="drought"&&context.geo==="vidarbha"?"Call WOTR Amravati (0721-2560545) and ask about watershed treatment feasibility. Bring your GP resolution.":context.hazard==="heat"&&context.geo==="vidarbha"?"Contact your District Health Officer. Request the Heat Action Plan template. Identify your Panchayat Bhawan as a cooling centre.":`Contact your Block Development Officer and report ${hazardLabel} exposure in your area.`,
+      contact:context.hazard==="flood"&&context.geo==="coastal_odisha"?"BDO + OSDMA: 1070":context.hazard==="drought"&&context.geo==="vidarbha"?"WOTR Amravati: 0721-2560545":"Block Development Office"},
+    {timing:"This Week",color:"#d97706",icon:"🔗",
+      action:context.role==="community"?`Register for a MGNREGS Job Card at your GP office. This unlocks DRR-convergent works in ${geoLabel}.`:context.role==="local_node"?`Pass a GP resolution formally identifying ${hazardLabel} as a priority threat. This activates MGNREGS DRR works.`:`Connect with your District Collector's DM nodal officer. Request the District DMP for ${geoLabel}.`,
+      contact:"Gram Panchayat Office / Block Development Office"},
+    {timing:"This Month",color:"#15803d",icon:"📋",
+      action:savedItems.length>0?`Begin the applications you identified: ${savedItems.slice(0,2).map(s=>s.name).join(" and ")}.`:context.geo==="coastal_odisha"?"Apply for MGNREGS convergence with embankment works. Contact RCDC for bio-dyke feasibility assessment.":context.geo==="vidarbha"?"Submit GP resolution for MGNREGS watershed works. Contact WOTR for mobilisation support.":"Contact HIAL and LEDeG Leh. Apply for LAHDC rural development fund.",
+      contact:"Zilla Parishad / NABARD Regional Office / Lead NGO"},
+    {timing:"This Quarter",color:"#6d28d9",icon:"🏗️",
+      action:`Establish a Village Climate Resilience Working Group — 5–8 members including the SHG president, ASHA, Ward Member, and a farmer leader. This becomes the standing node for all ${hazardLabel} routing.`,
+      contact:"GP Secretary + Block Mission Manager"},
+  ];
+}
+
+const EvidenceDots=({level})=>(
+  <div style={{display:"flex",gap:4,alignItems:"center"}}>
+    {[1,2,3].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",backgroundColor:i<=level?"#15803d":"#d1fae5"}}/>)}
+    <span style={{fontSize:11,color:"#6b7280",marginLeft:4}}>{level===3?"Strong evidence":level===2?"Moderate":"Emerging"}</span>
+  </div>
+);
+const Tag=({label})=><span style={{fontSize:10,fontWeight:600,padding:"2px 8px",borderRadius:99,backgroundColor:"#f1f5f9",color:"#475569",border:"1px solid #e2e8f0"}}>{label}</span>;
+const Stars=({score})=><div style={{display:"flex",gap:2}}>{[1,2,3,4,5].map(i=><span key={i} style={{fontSize:12,color:i<=score?"#f59e0b":"#d1d5db"}}>★</span>)}</div>;
+const ContextBar=({context})=>{
+  const h=HAZARDS.find(x=>x.id===context.hazard),g=GEOGRAPHIES.find(x=>x.id===context.geo),r=ROLES.find(x=>x.id===context.role);
+  if(!h)return null;
+  return <div style={{display:"flex",flexWrap:"wrap",gap:6,padding:"8px 14px",backgroundColor:"#f8fafc",borderBottom:"1px solid #e2e8f0"}}>
+    {h&&<span style={{fontSize:11,padding:"2px 10px",borderRadius:99,backgroundColor:h.light,color:h.accent,fontWeight:700}}>{h.icon} {h.label}</span>}
+    {g&&<span style={{fontSize:11,padding:"2px 10px",borderRadius:99,backgroundColor:"#f0fdf4",color:"#15803d",fontWeight:700}}>{g.icon} {g.label}</span>}
+    {r&&<span style={{fontSize:11,padding:"2px 10px",borderRadius:99,backgroundColor:"#f8fafc",color:"#475569",fontWeight:600}}>{r.label}</span>}
+  </div>;
+};
+
+function EntryScreen({onComplete}){
+  const [hazard,setHazard]=useState(null);
+  const [role,setRole]=useState(null);
+  const [geo,setGeo]=useState(null);
+  const ok=hazard&&role&&geo;
+  return(
+    <div style={{minHeight:"100vh",backgroundColor:"#fafaf9"}}>
+      <div style={{background:"linear-gradient(135deg,#064e3b 0%,#065f46 60%,#0f4c35 100%)",padding:"36px 20px 28px",textAlign:"center"}}>
+        <span style={{fontSize:10,letterSpacing:"0.18em",fontWeight:800,color:"#6ee7b7",textTransform:"uppercase",display:"block",marginBottom:10}}>CLIMATE ACTION ROUTING SYSTEM · INDIA</span>
+        <h1 style={{fontSize:44,fontWeight:900,color:"#fff",margin:0,fontFamily:"Georgia,serif",lineHeight:1.05}}>COMPASS</h1>
+        <p style={{fontSize:14,color:"#a7f3d0",marginTop:10,marginBottom:0,lineHeight:1.6,maxWidth:300,marginLeft:"auto",marginRight:"auto"}}>Not a directory. A routing layer.<br/><em>Recognition → Next Step → Action</em></p>
+        <div style={{marginTop:14,display:"flex",justifyContent:"center",gap:20}}>
+          {["Vidarbha","Coastal Odisha","Ladakh"].map(g=><span key={g} style={{fontSize:11,color:"#6ee7b7",fontWeight:700}}>◆ {g}</span>)}
+        </div>
+      </div>
+      <div style={{padding:"24px 16px 100px",maxWidth:580,margin:"0 auto"}}>
+        <div style={{marginBottom:28}}>
+          <h3 style={{fontSize:15,fontWeight:800,color:"#0f172a",marginBottom:4,fontFamily:"Georgia,serif"}}>1 — What are you facing?</h3>
+          <p style={{fontSize:12,color:"#9ca3af",marginBottom:14}}>Select the primary climate risk</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+            {HAZARDS.map(h=>(
+              <button key={h.id} onClick={()=>setHazard(h.id)} style={{padding:"14px 6px",borderRadius:12,border:`2px solid ${hazard===h.id?h.accent:"#e2e8f0"}`,backgroundColor:hazard===h.id?h.light:"#fff",cursor:"pointer",textAlign:"center",transform:hazard===h.id?"scale(1.04)":"scale(1)",transition:"all 0.15s"}}>
+                <div style={{fontSize:26,marginBottom:5}}>{h.icon}</div>
+                <div style={{fontSize:11,fontWeight:700,color:hazard===h.id?h.accent:"#374151"}}>{h.label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:28,opacity:hazard?1:0.4,transition:"opacity 0.3s",pointerEvents:hazard?"all":"none"}}>
+          <h3 style={{fontSize:15,fontWeight:800,color:"#0f172a",marginBottom:4,fontFamily:"Georgia,serif"}}>2 — Who are you?</h3>
+          <p style={{fontSize:12,color:"#9ca3af",marginBottom:14}}>Your role shapes what you see</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {ROLES.map(r=>(
+              <button key={r.id} onClick={()=>setRole(r.id)} style={{padding:"12px 14px",borderRadius:12,border:`2px solid ${role===r.id?"#064e3b":"#e2e8f0"}`,backgroundColor:role===r.id?"#f0fdf4":"#fff",cursor:"pointer",display:"flex",alignItems:"center",gap:12,textAlign:"left",transition:"all 0.15s"}}>
+                <span style={{fontSize:22}}>{r.icon}</span>
+                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:role===r.id?"#064e3b":"#0f172a"}}>{r.label}</div><div style={{fontSize:11,color:"#9ca3af"}}>{r.sub}</div></div>
+                {role===r.id&&<span style={{color:"#15803d",fontWeight:800}}>✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginBottom:28,opacity:role?1:0.4,transition:"opacity 0.3s",pointerEvents:role?"all":"none"}}>
+          <h3 style={{fontSize:15,fontWeight:800,color:"#0f172a",marginBottom:4,fontFamily:"Georgia,serif"}}>3 — Where are you?</h3>
+          <p style={{fontSize:12,color:"#9ca3af",marginBottom:14}}>Solutions and schemes vary by geography</p>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+            {GEOGRAPHIES.map(g=>(
+              <button key={g.id} onClick={()=>setGeo(g.id)} style={{padding:"16px 8px",borderRadius:12,border:`2px solid ${geo===g.id?g.color:"#e2e8f0"}`,backgroundColor:geo===g.id?g.color+"18":"#fff",cursor:"pointer",textAlign:"center",transform:geo===g.id?"scale(1.04)":"scale(1)",transition:"all 0.15s"}}>
+                <div style={{fontSize:26,marginBottom:5}}>{g.icon}</div>
+                <div style={{fontSize:12,fontWeight:800,color:geo===g.id?g.color:"#374151"}}>{g.label}</div>
+                <div style={{fontSize:10,color:"#9ca3af"}}>{g.sub}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+        <button onClick={()=>ok&&onComplete({hazard,role,geo})} disabled={!ok} style={{width:"100%",padding:18,borderRadius:14,border:"none",backgroundColor:ok?"#064e3b":"#e2e8f0",color:ok?"#fff":"#9ca3af",fontSize:16,fontWeight:800,cursor:ok?"pointer":"not-allowed",transition:"all 0.2s",boxShadow:ok?"0 4px 20px #064e3b44":"none"}}>
+          {ok?"Find My Climate Path →":"Complete all three steps above"}
+        </button>
+        {ok&&<p style={{textAlign:"center",fontSize:11,color:"#9ca3af",marginTop:10}}>No login · No forms · Immediate routing</p>}
+      </div>
+    </div>
+  );
+}
+
+function SolutionsScreen({context,pathway,setPathway,onNavigate}){
+  const [cat,setCat]=useState("all");
+  const [expanded,setExpanded]=useState(null);
+  const cats=["all","Nature-Based","Agroecology","Community Protocol","Financial Protection","Structural"];
+  const filtered=SOLUTIONS.filter(s=>{
+    const h=!context.hazard||s.hazards.includes(context.hazard);
+    const g=!context.geo||s.geographies.includes(context.geo);
+    const c=cat==="all"||s.category.toLowerCase().includes(cat.toLowerCase());
+    return h&&g&&c;
+  });
+  const addToPathway=sol=>{if(!pathway.find(p=>p.id===sol.id))setPathway([...pathway,sol]);};
+  return(
+    <div style={{backgroundColor:"#fafaf9",minHeight:"100vh"}}>
+      <div style={{background:"linear-gradient(135deg,#064e3b,#065f46)",padding:"18px 16px"}}>
+        <span style={{fontSize:10,color:"#6ee7b7",fontWeight:800,letterSpacing:"0.12em"}}>SOLUTIONS ROUTING LAYER</span>
+        <h2 style={{fontSize:20,fontWeight:900,color:"#fff",margin:"2px 0 0",fontFamily:"Georgia,serif"}}>What Has Worked — and How to Access It</h2>
+        <p style={{fontSize:12,color:"#a7f3d0",margin:"4px 0 0"}}>{filtered.length} solutions matched · each ends with your first step</p>
+      </div>
+      <ContextBar context={context}/>
+      <div style={{padding:"10px 14px",backgroundColor:"#fff",borderBottom:"1px solid #e2e8f0",overflowX:"auto"}}>
+        <div style={{display:"flex",gap:7,minWidth:"max-content"}}>
+          {cats.map(c=><button key={c} onClick={()=>setCat(c)} style={{padding:"5px 12px",borderRadius:99,border:`1px solid ${cat===c?"#064e3b":"#e2e8f0"}`,backgroundColor:cat===c?"#064e3b":"#fff",color:cat===c?"#fff":"#6b7280",fontSize:11,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap"}}>{c==="all"?"All":c}</button>)}
+        </div>
+      </div>
+      <div style={{padding:"14px",maxWidth:680,margin:"0 auto"}}>
+        {filtered.length===0&&<div style={{padding:40,textAlign:"center",color:"#9ca3af"}}><div style={{fontSize:40,marginBottom:12}}>🔍</div><p>No solutions match. <button onClick={()=>setCat("all")} style={{color:"#064e3b",fontWeight:700,border:"none",background:"none",cursor:"pointer"}}>Show all</button></p></div>}
+        {filtered.map(sol=>{
+          const inPath=pathway.find(p=>p.id===sol.id);
+          const open=expanded===sol.id;
+          return(
+            <div key={sol.id} style={{backgroundColor:"#fff",borderRadius:16,marginBottom:14,border:inPath?"2px solid #15803d":"1px solid #e2e8f0",overflow:"hidden",boxShadow:open?"0 4px 20px #00000011":"0 1px 4px #0000000a",transition:"all 0.2s"}}>
+              <div style={{padding:"16px 16px 12px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                    <span style={{fontSize:26}}>{sol.icon}</span>
+                    <div><h3 style={{fontSize:14,fontWeight:800,color:"#0f172a",margin:0}}>{sol.name}</h3><span style={{fontSize:10,color:"#9ca3af",fontWeight:600}}>{sol.category}</span></div>
+                  </div>
+                  <span style={{fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:99,backgroundColor:sol.accessible?"#dcfce7":"#fef3c7",color:sol.accessible?"#15803d":"#92400e"}}>{sol.accessible?"ACCESSIBLE":"NEEDS SUPPORT"}</span>
+                </div>
+                <p style={{fontSize:13,color:"#374151",lineHeight:1.6,margin:"0 0 10px"}}>{sol.plain}</p>
+                <div style={{display:"flex",flexWrap:"wrap",gap:12,marginBottom:10}}>
+                  <EvidenceDots level={sol.evidenceLevel}/>
+                  <span style={{fontSize:11,color:"#6b7280"}}>💰 {sol.costRange}</span>
+                </div>
+                <div style={{backgroundColor:"#f0fdf4",borderLeft:"3px solid #15803d",padding:"8px 12px",borderRadius:"0 8px 8px 0",marginBottom:10}}>
+                  <p style={{fontSize:11,color:"#166534",margin:0,fontStyle:"italic",lineHeight:1.5}}>"{sol.story}"</p>
+                </div>
+                <div style={{backgroundColor:"#064e3b",borderRadius:10,padding:"12px 14px",marginBottom:10}}>
+                  <p style={{fontSize:9,color:"#6ee7b7",fontWeight:800,margin:"0 0 3px",letterSpacing:"0.12em"}}>YOUR FIRST STEP →</p>
+                  <p style={{fontSize:12,color:"#fff",margin:"0 0 4px",fontWeight:600,lineHeight:1.5}}>{sol.firstStep}</p>
+                  <p style={{fontSize:10,color:"#a7f3d0",margin:0}}>Supported by: {sol.provider}</p>
+                </div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:10}}>{sol.tags.map(t=><Tag key={t} label={t}/>)}</div>
+              </div>
+              {open&&(
+                <div style={{padding:"0 16px 14px",borderTop:"1px solid #f1f5f9"}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginTop:10}}>
+                    <div><p style={{fontSize:10,fontWeight:700,color:"#374151",margin:"0 0 3px",textTransform:"uppercase"}}>Tried at</p><p style={{fontSize:11,color:"#6b7280",margin:0}}>{sol.triedAt}</p></div>
+                    <div><p style={{fontSize:10,fontWeight:700,color:"#374151",margin:"0 0 3px",textTransform:"uppercase"}}>Works best when</p><p style={{fontSize:11,color:"#6b7280",margin:0}}>{sol.bestFor}</p></div>
+                  </div>
+                  <div style={{marginTop:10,backgroundColor:"#fef3c7",padding:"8px 12px",borderRadius:8}}>
+                    <p style={{fontSize:10,fontWeight:700,color:"#92400e",margin:"0 0 3px"}}>⚠ WHEN IT DOESN'T WORK</p>
+                    <p style={{fontSize:11,color:"#78350f",margin:0}}>{sol.failureModes}</p>
+                  </div>
+                </div>
+              )}
+              <div style={{padding:"8px 16px 12px",display:"flex",gap:8,borderTop:"1px solid #f8fafc"}}>
+                <button onClick={()=>setExpanded(open?null:sol.id)} style={{flex:1,padding:"7px",borderRadius:8,border:"1px solid #e2e8f0",backgroundColor:"#fff",fontSize:11,fontWeight:600,color:"#374151",cursor:"pointer"}}>{open?"Less ↑":"Full Details ↓"}</button>
+                <button onClick={()=>addToPathway(sol)} style={{flex:1,padding:"7px",borderRadius:8,border:"none",backgroundColor:inPath?"#dcfce7":"#064e3b",color:inPath?"#15803d":"#fff",fontSize:11,fontWeight:700,cursor:"pointer"}}>{inPath?"✓ In Pathway":"+ Add to Pathway"}</button>
+              </div>
+            </div>
+          );
+        })}
+        {pathway.length>0&&<button onClick={()=>onNavigate("pathway")} style={{width:"100%",padding:14,borderRadius:12,border:"none",backgroundColor:"#f59e0b",color:"#fff",fontSize:13,fontWeight:800,cursor:"pointer",boxShadow:"0 4px 12px #f59e0b44",marginTop:4}}>View My Pathway ({pathway.length} items) →</button>}
+      </div>
+    </div>
+  );
+}
+
+function ProvidersScreen({context}){
+  const [typeFilter,setTypeFilter]=useState("all");
+  const filtered=PROVIDERS.filter(p=>{
+    const geo=!context.geo||p.geographies.includes(context.geo);
+    const haz=!context.hazard||p.hazards.includes(context.hazard);
+    const type=typeFilter==="all"||p.type.toLowerCase()===typeFilter;
+    return(geo||haz)&&type;
+  }).sort((a,b)=>(b.geographies.includes(context.geo)?1:0)-(a.geographies.includes(context.geo)?1:0));
+  return(
+    <div style={{backgroundColor:"#fafaf9",minHeight:"100vh"}}>
+      <div style={{background:"linear-gradient(135deg,#1e3a5f,#2d4a7a)",padding:"18px 16px"}}>
+        <span style={{fontSize:10,color:"#93c5fd",fontWeight:800,letterSpacing:"0.12em"}}>SERVICE PROVIDER DIRECTORY</span>
+        <h2 style={{fontSize:20,fontWeight:900,color:"#fff",margin:"2px 0 0",fontFamily:"Georgia,serif"}}>Who Can Help You, Near You</h2>
+        <p style={{fontSize:12,color:"#bfdbfe",margin:"4px 0 0"}}>{filtered.length} providers · ranked by context relevance</p>
+      </div>
+      <ContextBar context={context}/>
+      <div style={{padding:"10px 14px",backgroundColor:"#fff",borderBottom:"1px solid #e2e8f0"}}>
+        <div style={{display:"flex",gap:7}}>
+          {["all","ngo","government"].map(t=><button key={t} onClick={()=>setTypeFilter(t)} style={{padding:"5px 12px",borderRadius:99,border:`1px solid ${typeFilter===t?"#1e3a5f":"#e2e8f0"}`,backgroundColor:typeFilter===t?"#1e3a5f":"#fff",color:typeFilter===t?"#fff":"#6b7280",fontSize:11,fontWeight:700,cursor:"pointer"}}>{t==="all"?"All":t==="ngo"?"NGOs":"Government"}</button>)}
+        </div>
+      </div>
+      <div style={{padding:14,maxWidth:680,margin:"0 auto"}}>
+        {filtered.map(p=>{
+          const match=p.geographies.includes(context.geo);
+          return(
+            <div key={p.id} style={{backgroundColor:"#fff",borderRadius:16,marginBottom:12,border:match?"2px solid #2d4a7a":"1px solid #e2e8f0",overflow:"hidden"}}>
+              <div style={{padding:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,alignItems:"flex-start"}}>
+                  <div>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:2}}>
+                      <span style={{fontSize:15,fontWeight:900,color:match?"#1e3a5f":"#374151",fontFamily:"Georgia,serif"}}>{p.name}</span>
+                      {match&&<span style={{fontSize:9,padding:"1px 7px",borderRadius:99,backgroundColor:"#dbeafe",color:"#1e3a5f",fontWeight:800}}>BEST MATCH</span>}
+                    </div>
+                    <p style={{fontSize:10,color:"#9ca3af",margin:0}}>{p.full}</p>
+                  </div>
+                  <span style={{fontSize:9,padding:"2px 8px",borderRadius:99,backgroundColor:p.type==="NGO"?"#f0fdf4":"#eff6ff",color:p.type==="NGO"?"#15803d":"#1d4ed8",fontWeight:700}}>{p.type}</span>
+                </div>
+                <p style={{fontSize:12,color:"#374151",lineHeight:1.6,margin:"0 0 10px"}}>{p.what}</p>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div><p style={{fontSize:9,color:"#9ca3af",margin:"0 0 2px",fontWeight:700}}>ACTIVE DISTRICTS</p><p style={{fontSize:11,color:"#374151",margin:0}}>{p.districts}</p></div>
+                  <div style={{textAlign:"right"}}><p style={{fontSize:9,color:"#9ca3af",margin:"0 0 2px",fontWeight:700}}>RESPONSIVENESS</p><Stars score={p.responsiveness}/></div>
+                </div>
+                <div style={{backgroundColor:"#f8fafc",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+                  <p style={{fontSize:11,color:"#374151",margin:"0 0 4px",fontStyle:"italic"}}>{p.track}</p>
+                  <span style={{fontSize:9,padding:"1px 7px",borderRadius:99,backgroundColor:p.projectOnly?"#fef3c7":"#dcfce7",color:p.projectOnly?"#92400e":"#15803d",fontWeight:700}}>{p.projectOnly?"PROJECT ONLY":"RESPONDS TO OPEN DEMAND"}</span>
+                </div>
+                <div style={{display:"flex",gap:8}}>
+                  {p.phone&&<a href={"tel:"+p.phone} style={{flex:1,padding:"9px",borderRadius:10,border:"1px solid #e2e8f0",backgroundColor:"#fff",fontSize:11,fontWeight:700,color:"#374151",textDecoration:"none",textAlign:"center"}}>📞 {p.phone}</a>}
+                  {p.email&&<a href={"mailto:"+p.email} style={{flex:1,padding:"9px",borderRadius:10,border:"none",backgroundColor:"#1e3a5f",fontSize:11,fontWeight:700,color:"#fff",textDecoration:"none",textAlign:"center"}}>✉ Connect Now</a>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SchemesScreen({context,pathway,setPathway}){
+  const [expanded,setExpanded]=useState(null);
+  const AccessBar=({score})=>{
+    const labels={1:"Very Hard",2:"Difficult",3:"Moderate",4:"Accessible",5:"Easy"};
+    const colors={1:"#dc2626",2:"#ea580c",3:"#d97706",4:"#15803d",5:"#065f46"};
+    return <div style={{display:"flex",alignItems:"center",gap:6}}>
+      <div style={{display:"flex",gap:3}}>{[1,2,3,4,5].map(i=><div key={i} style={{width:16,height:6,borderRadius:3,backgroundColor:i<=score?colors[score]:"#e5e7eb"}}/>)}</div>
+      <span style={{fontSize:10,color:colors[score],fontWeight:700}}>{labels[score]}</span>
+    </div>;
+  };
+  const filtered=SCHEMES.filter(s=>(!context.hazard||s.hazards.includes(context.hazard))&&(!context.geo||s.geographies.includes(context.geo)));
+  const addToPathway=scheme=>{
+    const pid="scheme-"+scheme.id;
+    if(!pathway.find(p=>p.id===pid))setPathway([...pathway,{...scheme,id:pid,icon:"📋"}]);
+  };
+  return(
+    <div style={{backgroundColor:"#fafaf9",minHeight:"100vh"}}>
+      <div style={{background:"linear-gradient(135deg,#7c2d12,#9a3412)",padding:"18px 16px"}}>
+        <span style={{fontSize:10,color:"#fed7aa",fontWeight:800,letterSpacing:"0.12em"}}>GOVERNMENT SCHEME NAVIGATOR</span>
+        <h2 style={{fontSize:20,fontWeight:900,color:"#fff",margin:"2px 0 0",fontFamily:"Georgia,serif"}}>Government Money — and How to Actually Get It</h2>
+        <p style={{fontSize:12,color:"#fdba74",margin:"4px 0 0"}}>Real eligibility. Real process. What communities actually encounter.</p>
+      </div>
+      <ContextBar context={context}/>
+      <div style={{padding:14,maxWidth:680,margin:"0 auto"}}>
+        {filtered.map(scheme=>{
+          const open=expanded===scheme.id;
+          const added=pathway.find(p=>p.id==="scheme-"+scheme.id);
+          return(
+            <div key={scheme.id} style={{backgroundColor:"#fff",borderRadius:16,marginBottom:14,border:added?"2px solid #7c2d12":"1px solid #e2e8f0",overflow:"hidden"}}>
+              <div style={{padding:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                  <div><h3 style={{fontSize:16,fontWeight:900,color:"#0f172a",margin:"0 0 2px",fontFamily:"Georgia,serif"}}>{scheme.name}</h3><p style={{fontSize:10,color:"#9ca3af",margin:0}}>{scheme.full}</p></div>
+                  <span style={{fontSize:9,padding:"2px 8px",borderRadius:99,backgroundColor:"#fef3c7",color:"#92400e",fontWeight:700}}>{scheme.ministry}</span>
+                </div>
+                <p style={{fontSize:13,color:"#374151",lineHeight:1.6,margin:"0 0 10px"}}><strong>Funds:</strong> {scheme.funds}</p>
+                <div style={{marginBottom:10}}><p style={{fontSize:10,fontWeight:700,color:"#374151",margin:"0 0 4px",textTransform:"uppercase"}}>Community Accessibility</p><AccessBar score={scheme.accessible}/></div>
+                <div style={{backgroundColor:"#fef3c7",borderLeft:"3px solid #d97706",padding:"8px 12px",borderRadius:"0 8px 8px 0",marginBottom:10}}>
+                  <p style={{fontSize:11,color:"#92400e",margin:0,fontWeight:600}}>⚠ {scheme.warning}</p>
+                </div>
+                <div style={{backgroundColor:"#f8fafc",borderRadius:8,padding:"10px 12px",marginBottom:10}}>
+                  <p style={{fontSize:9,color:"#9ca3af",fontWeight:700,margin:"0 0 3px",textTransform:"uppercase"}}>What Communities Actually Encounter</p>
+                  <p style={{fontSize:11,color:"#374151",margin:0,lineHeight:1.5}}>{scheme.realWorld}</p>
+                </div>
+                <div style={{backgroundColor:"#7c2d12",borderRadius:10,padding:"12px 14px",marginBottom:10}}>
+                  <p style={{fontSize:9,color:"#fed7aa",fontWeight:800,margin:"0 0 3px",letterSpacing:"0.12em"}}>YOUR FIRST STEP →</p>
+                  <p style={{fontSize:12,color:"#fff",margin:0,fontWeight:600,lineHeight:1.5}}>{scheme.firstStep}</p>
+                </div>
+                {open&&(
+                  <div style={{marginBottom:10}}>
+                    <p style={{fontSize:11,fontWeight:700,color:"#374151",margin:"0 0 8px"}}>Step-by-Step Access Process</p>
+                    {scheme.steps.map((step,i)=>(
+                      <div key={i} style={{display:"flex",gap:10,marginBottom:7}}>
+                        <div style={{minWidth:22,height:22,borderRadius:"50%",backgroundColor:"#7c2d12",color:"#fff",fontSize:11,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{i+1}</div>
+                        <p style={{fontSize:11,color:"#374151",margin:0,lineHeight:1.5}}>{step}</p>
+                      </div>
+                    ))}
+                    <div style={{marginTop:10,backgroundColor:"#f1f5f9",borderRadius:8,padding:"10px 12px"}}>
+                      <p style={{fontSize:10,fontWeight:700,color:"#374151",margin:"0 0 3px"}}>KEY GATEKEEPER</p>
+                      <p style={{fontSize:11,color:"#6b7280",margin:0}}>{scheme.bottleneck}</p>
+                    </div>
+                    <div style={{marginTop:8}}><p style={{fontSize:10,fontWeight:700,color:"#374151",margin:"0 0 5px"}}>COMBINE WITH</p><div style={{display:"flex",flexWrap:"wrap",gap:5}}>{scheme.convergence.map(c=><Tag key={c} label={c}/>)}</div></div>
+                  </div>
+                )}
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>setExpanded(open?null:scheme.id)} style={{flex:1,padding:"8px",borderRadius:8,border:"1px solid #e2e8f0",backgroundColor:"#fff",fontSize:11,fontWeight:600,color:"#374151",cursor:"pointer"}}>{open?"Less ↑":"Full Process ↓"}</button>
+                  <button onClick={()=>addToPathway(scheme)} style={{flex:1,padding:"8px",borderRadius:8,border:"none",backgroundColor:added?"#dcfce7":"#7c2d12",color:added?"#15803d":"#fff",fontSize:11,fontWeight:700,cursor:"pointer"}}>{added?"✓ Added":"+ My Pathway"}</button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PathwayScreen({context,pathway}){
+  const [flagText,setFlagText]=useState("");
+  const [flagged,setFlagged]=useState(false);
+  const [showFlag,setShowFlag]=useState(false);
+  const steps=generatePathway(context,pathway);
+  return(
+    <div style={{backgroundColor:"#fafaf9",minHeight:"100vh"}}>
+      <div style={{background:"linear-gradient(135deg,#1e1b4b,#312e81)",padding:"18px 16px"}}>
+        <span style={{fontSize:10,color:"#c7d2fe",fontWeight:800,letterSpacing:"0.12em"}}>YOUR ACTIVATION PATHWAY</span>
+        <h2 style={{fontSize:20,fontWeight:900,color:"#fff",margin:"2px 0 0",fontFamily:"Georgia,serif"}}>From Recognition to Action</h2>
+        <p style={{fontSize:12,color:"#a5b4fc",margin:"4px 0 0"}}>Generated for your specific context. Not a generic checklist.</p>
+      </div>
+      <ContextBar context={context}/>
+      <div style={{padding:"14px",maxWidth:620,margin:"0 auto"}}>
+        {steps.map((step,i)=>(
+          <div key={i} style={{display:"flex",gap:14,marginBottom:20}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <div style={{width:44,height:44,borderRadius:"50%",backgroundColor:step.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,boxShadow:"0 4px 12px "+step.color+"44"}}>{step.icon}</div>
+              {i<steps.length-1&&<div style={{width:2,flex:1,minHeight:32,backgroundColor:"#e2e8f0",margin:"6px 0"}}/>}
+            </div>
+            <div style={{flex:1,paddingTop:4,paddingBottom:12}}>
+              <span style={{fontSize:9,fontWeight:800,color:step.color,letterSpacing:"0.12em",textTransform:"uppercase"}}>{step.timing}</span>
+              <p style={{fontSize:13,color:"#0f172a",lineHeight:1.65,margin:"4px 0 10px",fontWeight:500}}>{step.action}</p>
+              <div style={{backgroundColor:"#f8fafc",borderRadius:8,padding:"7px 12px",display:"flex",alignItems:"center",gap:8}}>
+                <span>📞</span><span style={{fontSize:11,color:"#374151",fontWeight:600}}>{step.contact}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+        {pathway.length>0&&(
+          <div style={{backgroundColor:"#fff",borderRadius:14,border:"1px solid #e2e8f0",padding:14,marginBottom:16}}>
+            <p style={{fontSize:12,fontWeight:800,color:"#0f172a",margin:"0 0 10px"}}>📌 Items You Identified ({pathway.length})</p>
+            {pathway.map((item,i)=>(
+              <div key={item.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<pathway.length-1?"1px solid #f1f5f9":"none"}}>
+                <span style={{fontSize:18}}>{item.icon}</span>
+                <div style={{flex:1}}><p style={{fontSize:12,fontWeight:700,color:"#0f172a",margin:0}}>{item.name}</p>{item.firstStep&&<p style={{fontSize:10,color:"#6b7280",margin:"1px 0 0"}}>{item.firstStep}</p>}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:16}}>
+          <button onClick={()=>window.print()} style={{padding:13,borderRadius:12,border:"1px solid #e2e8f0",backgroundColor:"#fff",fontSize:12,fontWeight:700,color:"#374151",cursor:"pointer"}}>🖨️ Print / Save This Pathway</button>
+          <button onClick={()=>setShowFlag(!showFlag)} style={{padding:13,borderRadius:12,border:"1px solid #e2e8f0",backgroundColor:"#fff",fontSize:12,fontWeight:700,color:"#374151",cursor:"pointer"}}>⚑ Flag a Gap — my need is not here</button>
+        </div>
+        {showFlag&&!flagged&&(
+          <div style={{backgroundColor:"#fff",borderRadius:14,border:"2px solid #e2e8f0",padding:14,marginBottom:16}}>
+            <p style={{fontSize:13,fontWeight:800,color:"#0f172a",margin:"0 0 4px"}}>Flag a Gap</p>
+            <p style={{fontSize:11,color:"#6b7280",margin:"0 0 10px"}}>Unmet needs become demand signals. Be specific.</p>
+            <textarea value={flagText} onChange={e=>setFlagText(e.target.value)} placeholder="Describe the need that wasn't met..." style={{width:"100%",height:80,padding:10,borderRadius:8,border:"1px solid #e2e8f0",fontSize:12,color:"#374151",resize:"none"}}/>
+            <button onClick={()=>{if(flagText){setFlagged(true);setShowFlag(false);}}} style={{marginTop:8,padding:"9px 18px",borderRadius:9,border:"none",backgroundColor:"#1e1b4b",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>Submit Gap Signal</button>
+          </div>
+        )}
+        {flagged&&<div style={{backgroundColor:"#f0fdf4",borderRadius:12,border:"1px solid #bbf7d0",padding:14,marginBottom:16,textAlign:"center"}}><p style={{fontSize:13,fontWeight:700,color:"#15803d",margin:0}}>✓ Gap signal received and logged.</p></div>}
+      </div>
+    </div>
+  );
+}
+
+function DashboardScreen(){
+  const stats=[{label:"Searches This Month",value:"2,847",change:"+23%",icon:"🔍"},{label:"Provider Connections",value:"341",change:"+18%",icon:"🔗"},{label:"Unmet Needs Flagged",value:"89",icon:"⚑",alert:true},{label:"Schemes Navigated",value:"1,203",change:"+31%",icon:"📋"}];
+  const hazardData=[{geo:"Vidarbha",items:[{n:"Heat Stress",p:42},{n:"Drought",p:33},{n:"Flood",p:25}]},{geo:"Coastal Odisha",items:[{n:"Cyclone",p:51},{n:"Flood",p:38},{n:"Drought",p:11}]},{geo:"Ladakh",items:[{n:"Drought",p:48},{n:"GLOF",p:35},{n:"Landslide",p:17}]}];
+  const gaps=[{s:"No heat action protocol for rural farm labourers in Vidarbha",n:23,g:"Vidarbha"},{s:"PMFBY claim rejection in Yavatmal — no documentation support available",n:19,g:"Vidarbha"},{s:"Mangrove restoration in Mahanadi delta — no NGO with tenure support capacity",n:14,g:"Coastal Odisha"},{s:"GLOF early warning for Zanskar villages — no community protocol",n:11,g:"Ladakh"},{s:"Kargil district under-served across all categories",n:9,g:"Ladakh"}];
+  const blocks=[{scheme:"PMFBY",issue:"72-hr intimation deadline not widely known",f:"High"},{scheme:"NDRF/SDRF",issue:"Panchnama delays of 2–6 weeks in Vidarbha",f:"High"},{scheme:"MGNREGS",issue:"Wage payment delays 60–90 days in Odisha",f:"Medium"},{scheme:"PMAY-G",issue:"SECC list exclusion blocks eligible households",f:"Medium"}];
+  return(
+    <div style={{backgroundColor:"#0f172a",minHeight:"100vh"}}>
+      <div style={{padding:"20px 16px 14px"}}>
+        <span style={{fontSize:10,color:"#6ee7b7",fontWeight:800,letterSpacing:"0.12em",display:"block",marginBottom:4}}>ECOSYSTEM INTELLIGENCE · RESTRICTED</span>
+        <h2 style={{fontSize:20,fontWeight:900,color:"#fff",margin:0,fontFamily:"Georgia,serif"}}>What the System Is Hearing</h2>
+        <p style={{fontSize:12,color:"#475569",margin:"4px 0 0"}}>Searches · Gaps · Bottlenecks · Honest Accounting</p>
+      </div>
+      <div style={{padding:"0 14px 24px",maxWidth:700,margin:"0 auto"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+          {stats.map(s=><div key={s.label} style={{backgroundColor:s.alert?"#450a0a":"#1e293b",borderRadius:14,padding:14,border:s.alert?"1px solid #dc2626":"1px solid #334155"}}>
+            <div style={{fontSize:22,marginBottom:5}}>{s.icon}</div>
+            <div style={{fontSize:28,fontWeight:900,color:s.alert?"#f87171":"#fff",fontFamily:"Georgia,serif"}}>{s.value}</div>
+            <div style={{fontSize:10,color:"#64748b",marginTop:2}}>{s.label}</div>
+            {s.change&&<div style={{fontSize:10,color:"#6ee7b7",fontWeight:700,marginTop:3}}>{s.change} vs last month</div>}
+            {s.alert&&<div style={{fontSize:10,color:"#f87171",fontWeight:700,marginTop:3}}>Requires response</div>}
+          </div>)}
+        </div>
+        <div style={{backgroundColor:"#1e293b",borderRadius:14,padding:16,marginBottom:12,border:"1px solid #334155"}}>
+          <p style={{fontSize:13,fontWeight:800,color:"#fff",margin:"0 0 14px"}}>Top Hazards by Geography</p>
+          {hazardData.map(g=><div key={g.geo} style={{marginBottom:12}}>
+            <p style={{fontSize:11,fontWeight:700,color:"#94a3b8",margin:"0 0 7px"}}>{g.geo}</p>
+            {g.items.map(h=><div key={h.n} style={{display:"flex",alignItems:"center",gap:10,marginBottom:5}}>
+              <span style={{fontSize:10,color:"#cbd5e1",width:88,flexShrink:0}}>{h.n}</span>
+              <div style={{flex:1,height:6,backgroundColor:"#334155",borderRadius:3}}><div style={{width:h.p+"%",height:"100%",backgroundColor:"#6ee7b7",borderRadius:3}}/></div>
+              <span style={{fontSize:10,color:"#6ee7b7",width:28,textAlign:"right",fontWeight:700}}>{h.p}%</span>
+            </div>)}
+          </div>)}
+        </div>
+        <div style={{backgroundColor:"#1e293b",borderRadius:14,padding:16,marginBottom:12,border:"1px solid #334155"}}>
+          <p style={{fontSize:13,fontWeight:800,color:"#fff",margin:"0 0 3px"}}>⚑ Unmet Need Signals</p>
+          <p style={{fontSize:11,color:"#475569",margin:"0 0 12px"}}>What communities flagged as absent. Honest accounting.</p>
+          {gaps.map((g,i)=><div key={i} style={{display:"flex",gap:10,padding:"9px 0",borderBottom:i<gaps.length-1?"1px solid #334155":"none"}}>
+            <div style={{minWidth:30,height:30,borderRadius:7,backgroundColor:"#450a0a",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"#f87171",flexShrink:0}}>{g.n}</div>
+            <div><p style={{fontSize:11,color:"#e2e8f0",margin:"0 0 2px",lineHeight:1.5}}>{g.s}</p><span style={{fontSize:9,color:"#64748b",fontWeight:700}}>{g.g}</span></div>
+          </div>)}
+        </div>
+        <div style={{backgroundColor:"#1e293b",borderRadius:14,padding:16,border:"1px solid #334155"}}>
+          <p style={{fontSize:13,fontWeight:800,color:"#fff",margin:"0 0 3px"}}>🔒 Recurring Scheme Bottlenecks</p>
+          <p style={{fontSize:11,color:"#475569",margin:"0 0 12px"}}>Patterns surfacing consistently across all geographies</p>
+          {blocks.map((b,i)=><div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"9px 0",borderBottom:i<blocks.length-1?"1px solid #334155":"none"}}>
+            <span style={{fontSize:9,padding:"2px 7px",borderRadius:99,backgroundColor:b.f==="High"?"#450a0a":"#431407",color:b.f==="High"?"#f87171":"#fb923c",fontWeight:700,flexShrink:0,marginTop:2}}>{b.f}</span>
+            <div><p style={{fontSize:11,fontWeight:700,color:"#e2e8f0",margin:"0 0 2px"}}>{b.scheme}</p><p style={{fontSize:11,color:"#94a3b8",margin:0}}>{b.issue}</p></div>
+          </div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App(){
+  const [screen,setScreen]=useState("entry");
+  const [context,setContext]=useState({hazard:null,role:null,geo:null});
+  const [pathway,setPathway]=useState([]);
+  const nav=[{id:"solutions",label:"Solutions",icon:"💡"},{id:"providers",label:"Providers",icon:"🤝"},{id:"schemes",label:"Schemes",icon:"📋"},{id:"pathway",label:"My Path",icon:pathway.length>0?""+pathway.length:"→"},{id:"dashboard",label:"Intel",icon:"📊"}];
+  return(
+    <div style={{maxWidth:760,margin:"0 auto",fontFamily:"'Trebuchet MS','Gill Sans',Georgia,sans-serif",position:"relative",minHeight:"100vh",backgroundColor:"#fafaf9"}}>
+      {screen==="entry"&&<EntryScreen onComplete={ctx=>{setContext(ctx);setScreen("solutions");}}/>}
+      {screen==="solutions"&&<SolutionsScreen context={context} pathway={pathway} setPathway={setPathway} onNavigate={setScreen}/>}
+      {screen==="providers"&&<ProvidersScreen context={context}/>}
+      {screen==="schemes"&&<SchemesScreen context={context} pathway={pathway} setPathway={setPathway}/>}
+      {screen==="pathway"&&<PathwayScreen context={context} pathway={pathway}/>}
+      {screen==="dashboard"&&<DashboardScreen/>}
+      {screen!=="entry"&&<>
+        <div style={{height:70}}/>
+        <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:760,backgroundColor:"#fff",borderTop:"1px solid #e2e8f0",display:"flex",padding:"6px 0 10px",boxShadow:"0 -4px 20px #00000011",zIndex:100}}>
+          {nav.map(item=>(
+            <button key={item.id} onClick={()=>setScreen(item.id)} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"4px 2px",border:"none",backgroundColor:"transparent",cursor:"pointer"}}>
+              <span style={{width:34,height:34,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",backgroundColor:screen===item.id?"#064e3b":"transparent",fontSize:item.id==="pathway"&&pathway.length>0?13:16,fontWeight:item.id==="pathway"&&pathway.length>0?900:"normal",color:screen===item.id?"#fff":item.id==="pathway"&&pathway.length>0?"#064e3b":"#9ca3af",transition:"all 0.15s"}}>{item.icon}</span>
+              <span style={{fontSize:9,fontWeight:screen===item.id?800:600,color:screen===item.id?"#064e3b":"#9ca3af"}}>{item.label}</span>
+            </button>
+          ))}
+        </nav>
+        <button className="no-print" onClick={()=>{setScreen("entry");setContext({hazard:null,role:null,geo:null});setPathway([]);}} style={{position:"fixed",top:10,right:14,zIndex:200,padding:"5px 12px",borderRadius:99,border:"none",backgroundColor:"rgba(255,255,255,0.92)",fontSize:10,fontWeight:700,color:"#374151",cursor:"pointer",boxShadow:"0 2px 8px #00000022"}}>← Restart</button>
+      </>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
